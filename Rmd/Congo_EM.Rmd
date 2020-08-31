@@ -1,0 +1,16 @@
+---
+title: "Congo EM"
+author: "Albert Hamzin"
+date: "2/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("sourceData.R")
+```
+
+```{r}
+create_EM_plot_Congo()
+```
+

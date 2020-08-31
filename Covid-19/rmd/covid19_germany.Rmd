@@ -1,0 +1,43 @@
+---
+title: "COVID-19 Germany"
+author: "Albert Hamzin"
+date: "5/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+source("/Users/alf/Documents/GitHub/Covid-19/script/covid_source_data.R")
+```
+
+
+
+
+```{r}
+covid_week_visualization()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

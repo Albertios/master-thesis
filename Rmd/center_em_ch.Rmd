@@ -1,0 +1,38 @@
+---
+title: "Center of EM & Convex Hull"
+author: "Albert Hamzin"
+date: "5/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("/Users/alf/Documents/GitHub/Master/R_code/center_of_em_ch.R")
+```
+
+
+
+
+
+# Boko Haram
+
+```{r}
+Boko_Haram_EM_Convex_Hull_Center()
+```
+
+
+# Sudan
+```{r}
+Sudan_EM_Convex_Hull_Center()
+
+```
+
+
+
+# Kongo
+```{r}
+
+Congo_EM_Convex_Hull_Center()
+```
+
+

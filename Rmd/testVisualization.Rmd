@@ -1,0 +1,366 @@
+---
+title: "Visualisierung des ersten Konflikts"
+author: "Albert Hamzin"
+date: "28.12.2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r packages}
+
+library(base)
+library(stats)
+#library(dplyr)
+library(ggplot2)
+require(leaflet)
+library(gganimate)
+library(caTools)
+library(plotly)
+
+#library(mclust) #EM-algorithm
+#library(flexmix) #EM-algorithm
+
+library(MASS)
+library(Matrix)
+library(EMCluster)
+
+```
+
+## Einlesen der ACLED CSV Datei
+
+ <https://en.wikipedia.org/wiki/Armed_Conflict_Location_and_Event_Data_Project>.
+
+
+```{r }
+
+acledDataPath <- "/Users/alf/Documents/Uni/Masterarbeit/acled-data.csv"
+
+#datei vorher uns UTF-8 umwandeln
+acledData <- read.csv(acledDataPath,head=TRUE,sep=",")
+
+
+```
+
+
+Beim Filtern der Daten nach Boko Haram ist unklar in welcher Spalte nach Boko Haram gesucht werden solll.
+
+Spalte NOTES liefert die meisten Treffer.
+Wahrscheinlich ist eine Kombination aus ACTOR1 & ACTOR2 die beste Wahl.
+
+
+## Pre-Processing
+
+Filtern der Daten nach dem Land und der Terrorgruppe "Boko Haram".
+
+```{r}
+
+#indices <- which(acledData$COUNTRY == "Niger" & grepl("Boko Haram", acledData$NOTES))
+
+indices <- which(acledData$COUNTRY == "Republic of Congo")
+
+data_subset <- acledData[indices, ]
+
+filteredData <- data.frame("EVENT_ID_CNTY"=data_subset$EVENT_ID_CNTY, "EVENT_DATE"=data_subset$EVENT_DATE, "YEAR"=as.factor(data_subset$YEAR) ,"LATITUDE"=data_subset$LATITUDE, "LONGITUDE"=data_subset$LONGITUDE) 
+
+head(filteredData, n=4)
+
+
+summary(filteredData$YEAR)
+
+nrow(filteredData)
+
+```
+
+
+
+```{r}
+
+filteredData$EVENT_DATE <- as.Date(filteredData$EVENT_DATE, format = "%d/%m/%Y")
+
+filteredData$LATITUDE <- as.numeric(as.character(filteredData$LATITUDE))
+
+filteredData$LONGITUDE <- as.numeric(as.character(filteredData$LONGITUDE))
+
+
+```
+Umwandeln des Datentyps
+
+
+## Visualisierung
+
+
+```{r}
+
+ggplot(filteredData, aes( LONGITUDE, LATITUDE)) +  geom_point(size=4, alpha = 0.3, aes(color = YEAR))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) 
+
+
+
+```
+Es werden nicht alle Punkte angezeigt, da sich die Punkte überlagern.
+*Längengrad Breitengrad beschriftung falsch
+
+
+
+
+
+```{r}
+
+ggplot(filteredData, aes( LONGITUDE,LATITUDE, shape = factor(YEAR))) +  geom_point(size=4, alpha = 0.3, aes(color = YEAR))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) 
+
+```
+Überlappung der Punkte
+
+
+
+
+```{r}
+
+leaflet( filteredData) %>% addTiles() %>%
+  addMarkers(~LONGITUDE, ~LATITUDE, popup = ~as.character(YEAR), label = ~as.character(YEAR))
+
+```
+Mehrere Punkte haben anscheinend exakt die selben Koordinaten.
+
+
+
+
+
+
+
+```{r}
+
+
+
+
+
+leaflet() %>% addTiles() %>%
+  addMarkers(data=filteredData,popup = ~as.character(YEAR),
+    clusterOptions = markerClusterOptions(),
+    clusterId = "quakesCluster") %>%
+  addEasyButton(easyButton(
+    states = list(
+      easyButtonState(
+        stateName="unfrozen-markers",
+        icon="ion-toggle",
+        title="Freeze Clusters",
+        onClick = JS("
+          function(btn, map) {
+            var clusterManager =
+              map.layerManager.getLayer('cluster', 'quakesCluster');
+            clusterManager.freezeAtZoom();
+            btn.state('frozen-markers');
+          }")
+      ),
+      easyButtonState(
+        stateName="frozen-markers",
+        icon="ion-toggle-filled",
+        title="UnFreeze Clusters",
+        onClick = JS("
+          function(btn, map) {
+            var clusterManager =
+              map.layerManager.getLayer('cluster', 'quakesCluster');
+            clusterManager.unfreeze();
+            btn.state('unfrozen-markers');
+          }")
+      )
+    )
+  ))
+
+```
+1. Die Ereignisse geschahen mehr mals an der selben Kreuzung 
+  oder
+2. Es wird eine Koordinate für die ganze Stadt / Dorf genommen.
+
+
+
+
+
+
+
+```{r }
+
+
+ ggplot(data = filteredData, 
+        mapping = aes(x = LONGITUDE, y = LATITUDE, color = YEAR)) +
+     geom_point() +
+     facet_wrap(vars(YEAR)) +
+     theme_bw()
+
+
+
+```
+
+Jahresvergleich
+
+
+
+## Animation 
+
+
+### Animation by date
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
+
+# Make a ggplot, but add frame=year: one image per year
+ggplot(filteredData, aes(LONGITUDE, LATITUDE, size = 1, color = YEAR)) +
+  geom_point() +
+  scale_x_log10() +
+  theme_bw() +
+  labs(title = 'Year: {frame_time}', x = 'lat', y = 'long') +
+  transition_time(filteredData$EVENT_DATE) +
+  ease_aes('linear') 
+
+
+# Save as gif: (not working)
+#anim_save("gganimate.gif", animation = last_plot(), path = "/Users/alf/Documents/GitHub/Master/anim")
+
+
+# example 1: simple animated countdown from 10 to "GO!".
+png(file="gganim_plot%03d.png", width=500, height=500)
+
+
+# convert the .png files to one .gif file using ImageMagick.
+# The system() function executes the command as if it was done
+# in the terminal. the -delay flag sets the time between showing
+# the frames, i.e. the speed of the animation.
+system("convert -delay 40 *.png example_date.gif")
+
+
+#  remove the single png files
+file.remove(list.files(pattern=".png"))
+
+
+```
+
+
+
+
+
+
+```{r }
+
+zeit<- as.Date(filteredData$EVENT_DATE,format="%d.%m.%Y")
+zeit <- format(zeit,"%d.%m.%Y")
+
+pDatum <- ggplot(filteredData, aes( LONGITUDE, LATITUDE, color =YEAR, frame = zeit  )) +
+  geom_point(aes(size = 1)) +
+  scale_x_log10()
+
+pDatum <- ggplotly(pDatum)
+
+pDatum
+
+
+
+
+
+```
+
+
+
+### Animation by year
+
+
+
+
+
+
+```{r}
+
+yearInt <- as.numeric(as.character(filteredData$YEAR))
+
+p <- ggplot(filteredData, aes( LONGITUDE, LATITUDE, color = YEAR, frame = yearInt)) +
+  geom_point(aes(size = 1)) +
+  scale_x_log10()
+
+p <- ggplotly(p)
+
+p
+
+
+```
+
+
+
+## Expectation-maximization (EM)
+
+
+Der Expectation-Maximization-Algorithmus, kurz EM-Algorithmus, selten auch Estimation-Maximization-Algorithmus (deutsch Erwartungs-Maximierungs-Algorithmus) ist ein Algorithmus der mathematischen Statistik.
+
+In beiden Schritten wird dabei die Qualität des Ergebnisses verbessert: Im E-Schritt werden die Punkte besser zugeordnet, im M-Schritt wird das Modell so verändert, dass es besser zu den Daten passt. Findet keine wesentliche Verbesserung mehr statt, beendet man das Verfahren.
+
+Das Verfahren findet typischerweise nur „lokale“ Optima. Dadurch ist es oft notwendig, das Verfahren mehrfach aufzurufen und das beste so gefundene Ergebnis auszuwählen.
+<https://de.wikipedia.org/wiki/EM-Algorithmus>
+
+
+
+```{r EM-algorithm}
+
+filterOne <- which( grepl("2012|2013|2014", filteredData$YEAR))
+filterTwo <- which( grepl("2014|2016", filteredData$YEAR))
+
+data_subsetOne <- filteredData[filterOne, ]
+data_subsetTwo <- filteredData[filterTwo, ]
+
+
+sum12_14 <- data.frame("LATITUDE"=data_subsetOne$LATITUDE, "LONGITUDE"=data_subsetOne$LONGITUDE)
+
+
+
+sum15_16 <- data.frame("LATITUDE"=data_subsetTwo$LATITUDE, "LONGITUDE"=data_subsetTwo$LONGITUDE)
+
+
+
+
+
+
+
+```
+
+
+## Expectation-maximization in R by hand
+
+```{r}
+
+
+set.seed(1234)
+x <- da1$da
+
+#sum12_14 <- data.frame("LATITUDE"=data_subsetOne$LATITUDE, "LONGITUDE"=data_subsetOne$LONGITUDE)
+
+library(MASS)
+library(Matrix)
+library(EMCluster, quietly = TRUE)
+ret.em <- init.EM(sum15_16, nclass = 3, method = "em.EM")
+
+plotem(ret.em, sum15_16)
+
+#par(mfrow = c(2, 2)) Die Funktion par dient dazu, allgemeine
+#”grafische Parameter“ festzulegen, die fur ¨ weitere Grafiken anwendbar sind, bis sie wieder
+#mit par ge¨andert werden – analog zur Funktion options
+
+
+
+#plot(sum15_16)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+

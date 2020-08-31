@@ -1,0 +1,32 @@
+---
+title: "Congo"
+author: "Albert Hamzin"
+date: "2/25/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("sourceData.R")
+```
+
+
+```{r packages,  include=FALSE}
+library(alphahull)
+library(tidyverse) # identify and remove duplicate
+```
+
+
+
+## alpha shape Congo
+
+
+
+```{r alpha shape Congo}
+# works only with unique points / coordinates
+
+
+create_alpha_shape_plot_Congo()
+
+```

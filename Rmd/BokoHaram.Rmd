@@ -1,0 +1,210 @@
+---
+title: "Boko Haram"
+author: "Albert Hamzin"
+date: "1/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r packages}
+library(base)
+library(stats)
+library(ggplot2)
+require(leaflet)
+library(caTools)
+library(plotly)
+
+library(MASS, quietly = TRUE)
+library(Matrix, quietly = TRUE)
+library(EMCluster, quietly = TRUE)
+```
+
+
+
+
+## Einlesen der ACLED CSV Datei
+
+ <https://en.wikipedia.org/wiki/Armed_Conflict_Location_and_Event_Data_Project>.
+
+
+```{r path}
+
+acledDataPath <- "/Users/alf/Documents/Uni/Masterarbeit/acled-data.csv"
+
+#datei vorher uns UTF-8 umwandeln
+acledData <- read.csv(acledDataPath,head=TRUE,sep=",")
+
+
+```
+
+
+
+
+## Pre-Processing
+
+Filtern der Daten nach der Terrorgruppe "Boko Haram".
+
+```{r pre-processing}
+
+indices <- which( grepl("Boko Haram", acledData$NOTES, acledData$ACTOR1, acledData$ACTOR2))
+
+data_subset <- acledData[indices, ]
+
+filteredData <- data.frame("EVENT_ID_CNTY"=data_subset$EVENT_ID_CNTY, "EVENT_DATE"=data_subset$EVENT_DATE, "YEAR"=as.factor(data_subset$YEAR) ,"LATITUDE"=data_subset$LATITUDE, "LONGITUDE"=data_subset$LONGITUDE) 
+
+head(filteredData, n=4)
+
+```
+
+
+
+```{r}
+
+filteredData$EVENT_DATE <- as.Date(filteredData$EVENT_DATE, format = "%d/%m/%Y")
+
+filteredData$LATITUDE <- as.numeric(as.character(filteredData$LATITUDE))
+
+filteredData$LONGITUDE <- as.numeric(as.character(filteredData$LONGITUDE))
+
+
+```
+Umwandeln des Datentyps
+
+
+## Visualisierung
+
+
+```{r}
+
+ggplot(filteredData, aes( LONGITUDE, LATITUDE)) +  geom_point(size=4, alpha = 0.3, aes(color = YEAR))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) 
+
+
+
+```
+
+
+```{r}
+
+leaflet( filteredData) %>% addTiles() %>%
+  addMarkers(~LONGITUDE, ~LATITUDE, popup = ~as.character(YEAR), label = ~as.character(YEAR))
+
+```
+
+```{r}
+
+
+
+
+
+leaflet() %>% addTiles() %>%
+  addMarkers(data=filteredData,popup = ~as.character(YEAR),
+    clusterOptions = markerClusterOptions(),
+    clusterId = "quakesCluster") %>%
+  addEasyButton(easyButton(
+    states = list(
+      easyButtonState(
+        stateName="unfrozen-markers",
+        icon="ion-toggle",
+        title="Freeze Clusters",
+        onClick = JS("
+          function(btn, map) {
+            var clusterManager =
+              map.layerManager.getLayer('cluster', 'quakesCluster');
+            clusterManager.freezeAtZoom();
+            btn.state('frozen-markers');
+          }")
+      ),
+      easyButtonState(
+        stateName="frozen-markers",
+        icon="ion-toggle-filled",
+        title="UnFreeze Clusters",
+        onClick = JS("
+          function(btn, map) {
+            var clusterManager =
+              map.layerManager.getLayer('cluster', 'quakesCluster');
+            clusterManager.unfreeze();
+            btn.state('unfrozen-markers');
+          }")
+      )
+    )
+  ))
+
+```
+
+
+
+```{r }
+
+
+  ggplot(data = filteredData, 
+        mapping = aes(x = LONGITUDE, y = LATITUDE, color = YEAR)) +
+     geom_point() +
+     facet_wrap(vars(YEAR)) +
+     theme_bw()
+
+#Anzahl der Konflikte pro Jahr
+summary(filteredData$YEAR)
+
+```
+
+
+
+
+```{r }
+
+# zeit<- as.Date(filteredData$EVENT_DATE,format="%d.%m.%Y")
+# zeit <- format(zeit,"%Y.%m.%d")
+# 
+# pDatum <- ggplot(filteredData, aes( LONGITUDE, LATITUDE, color =YEAR, frame = zeit  )) +
+#   geom_point(aes(size = 1)) +
+#   labs(title="Boko Haram Konflikte") +
+#   scale_x_log10()
+# 
+# pDatumAnim <- ggplotly(pDatum)
+# 
+# pDatumAnim
+
+```
+
+
+
+
+
+### Animation by year
+
+```{r}
+
+yearInt <- as.numeric(as.character(filteredData$YEAR))
+
+p <- ggplot(filteredData, aes( LONGITUDE, LATITUDE, color = YEAR, frame = yearInt)) +
+  geom_point(aes(size = 1)) +
+  scale_x_log10()+
+  labs(title="Boko Haram Konflikte") +
+  theme(legend.position = 'right')
+
+p
+
+```
+
+
+
+```{r}
+
+
+
+pAnim <- ggplotly(p)
+
+pAnim
+
+```
+
+
+
+
+
+

@@ -1,0 +1,82 @@
+---
+title: "alphaShape"
+author: "Albert Hamzin"
+date: "2/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("sourceData.R")
+```
+
+```{r packages,  include=FALSE}
+
+library(alphahull)
+library(tidyverse) # identify and remove duplicate
+```
+
+
+## alpha shape
+
+### 2011
+```{r 2011}
+# works only with unique points / coordinates
+#function(dataFrame, alphaValue, year)
+alphaShapeCalc(sum11, 0.5,2011)
+
+```
+
+### 2012
+```{r 2012}
+#function(dataFrame, alphaValue, year)
+alphaShapeCalc(sum12,  0.4 ,2012)
+
+```
+
+
+### 2013
+```{r 2013}
+#function(dataFrame, alphaValue, year)
+alphaShapeCalc(sum13, 0.4,2013)
+
+```
+
+
+### 2014
+```{r 2014}
+#function(dataFrame, alphaValue, year)
+alphaShapeCalc(sum14, 0.5,2014)
+
+#function(dataFrame, alphaValue, year, xlim, ylim)
+alphaShapeLimCalc(sum14, 0.5,2014, c(3, 16),c(3, 18))
+
+#function(dataFrame, alphaValue, year, xlim, ylim)
+alphaShapeLimCalc(sum14, 0.25,2014, c(11, 16),c(10, 18))
+
+```
+
+### 2015
+```{r 2015}
+#function(dataFrame, alphaValue, year)
+alphaShapeCalc(sum15, 0.5,2015)
+
+#function(dataFrame, alphaValue, year, xlim, ylim)
+alphaShapeLimCalc(sum15, 0.4,2015, c(3, 18),c(0, 18))
+
+#function(dataFrame, alphaValue, year, xlim, ylim)
+alphaShapeLimCalc(sum15, 0.25,2015, c(11, 16),c(5, 18))
+
+```
+
+
+### 2016
+```{r 2016}
+#function(dataFrame, alphaValue, year)
+alphaShapeCalc(sum16, 0.3,2016)
+
+#function(dataFrame, alphaValue, year, xlim, ylim)
+alphaShapeLimCalc(sum16, 0.25,2016, c(11, 16),c(10, 18))
+
+```
+

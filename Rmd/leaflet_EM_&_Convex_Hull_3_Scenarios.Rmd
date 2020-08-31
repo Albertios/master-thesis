@@ -1,0 +1,207 @@
+---
+title: "EM & Convex Hull"
+author: "Albert Hamzin"
+date: "4/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("/Users/alf/Documents/GitHub/Master/R_code/leaflet_combine_EM_&_comvex_hull.R")
+```
+
+
+```{r message=FALSE, warning=FALSE}
+# library(mclust)
+# library(leaflet)
+# library(sp)
+# library(spatstat)
+# library(geosphere)
+```
+
+
+
+# Boko Haram
+
+```{r warning=FALSE}
+Boko_Haram_EM_Convex_Hull()
+```
+
+
+# Sudan
+```{r warning=FALSE}
+Sudan_EM_Convex_Hull()
+
+```
+
+
+
+# Kongo
+```{r warning=FALSE}
+
+Congo_EM_Convex_Hull()
+```
+
+
+
+
+
+
+```{r eval=FALSE, include=FALSE}
+
+
+sum_two_convexe_hulls <- c()
+
+  html <- list()
+  for (i in 1:length(years_Boko_Haram)) {
+    df <- get_year_Boko_Haram(years_Boko_Haram[i])
+    
+    year <-  as.numeric(years_Boko_Haram[i])
+    
+    df <- df[which(df$YEAR == year),]
+    
+    df_as_temporarily <-
+      data.frame("LONGITUDE" = df$LONGITUDE,
+                 "LATITUDE" = df$LATITUDE)
+    uniqueData <- unique(df_as_temporarily)
+    
+    #dce_coord <- c()
+    
+    if (nrow(uniqueData) > 2) {
+      df <-  df_as_temporarily
+      
+      mod <- Mclust(df_as_temporarily, G = 2)
+      
+      df$type <-  c(mod[["classification"]])
+      
+      
+      x <- df$LONGITUDE
+      y <- df$LATITUDE
+      w <- convexhull.xy(x, y)
+      
+      type_one <- which(df$type == "1")
+      egg <-df[type_one, ]
+      unique_egg <- unique(egg)
+      if (nrow(unique_egg) > 2) {
+        egg_x <- egg$LONGITUDE
+        egg_y <- egg$LATITUDE
+        egg_convex_hull <- convexhull.xy(egg_x,egg_y)
+        
+     
+        # Create a palette that maps factor levels to colors
+        area_size <- spatstat::area(w)/100*spatstat::area(egg_convex_hull)
+        
+        if(area_size>50){
+          type_one <- which(df$type == "2")
+          egg <- df[type_one,]
+          unique_egg <- unique(egg)
+          egg_x <- egg$LONGITUDE
+          egg_y <- egg$LATITUDE
+          egg_convex_hull <- convexhull.xy(egg_x, egg_y)
+          
+          pal <- colorFactor(c("red", "navy"), domain = c("1", "2"))
+        }else{
+          pal <- colorFactor(c("navy", "red"), domain = c("1", "2"))
+        }
+        
+        if (length(unique(egg_convex_hull[["bdry"]][[1]][["x"]])) > 7 ) {
+
+          A <- cbind(unique(egg_convex_hull[["bdry"]][[1]][["x"]]), unique(egg_convex_hull[["bdry"]][[1]][["y"]]))
+          A <- rbind(A, A[1,])
+
+          sum_two_convexe_hulls <<- rbind(sum_two_convexe_hulls, A)
+          #sum_two_convexe_hulls <- rbind(sum_two_convexe_hulls, sum_two_convexe_hulls[1,])
+          #print(paste0("sum_two_convexe_hulls: ", sum_two_convexe_hulls))
+
+          if (length(CC) > 0) {
+            sum_two_convexe_hulls <<- rbind(CC, B)
+          }
+          
+          calc_ch <- convexhull.xy(sum_two_convexe_hulls[ , 1], sum_two_convexe_hulls[ , 2])
+          #print(paste0("calc_ch:", calc_ch))
+          calc_ch_xy <- cbind(calc_ch[["bdry"]][[1]][["x"]], calc_ch[["bdry"]][[1]][["y"]])
+          calc_ch_xy <- rbind(calc_ch_xy, calc_ch_xy[1, ])
+          #print(paste0("letzte reihe: ", calc_ch))
+          dce_coord <-discrete_curve_evolution(calc_ch_xy, 7)# %>% na.omit() 
+          sum_two_convexe_hulls <<- A
+          if (length(B) > 0) {
+            CC <<- B
+          }
+          B <<- A
+
+          dce_coord <- coordinates(dce_coord)
+          #dce_coord <- rbind(dce_coord, dce_coord[1,])
+          dce_coord <-  st_polygon(list(as.matrix(dce_coord)))
+          
+          dce_coord_buf <-  st_buffer(dce_coord, .4, endCapStyle = "SQUARE", joinStyle = "MITRE",  mitreLimit = 5)
+         #dce_coord_buf <- rbind(dce_coord_buf, dce_coord_buf[[1]][1,])
+        html <- c(html,
+                  list(
+                    h3(paste0("Boko Haram Year ", year)),
+                    leaflet(df) %>% addTiles() %>%
+                      addPolygons(
+                        lng = w[["bdry"]][[1]][["x"]],
+                        lat = w[["bdry"]][[1]][["y"]],
+                        color = "green"
+                      ) %>%
+                      addPolygons(
+                        lng = egg_convex_hull[["bdry"]][[1]][["x"]],
+                        lat = egg_convex_hull[["bdry"]][[1]][["y"]],
+                        color = "purple"
+                      )%>%
+                      addPolygons(
+                        lng =dce_coord_buf[[1]][,2], 
+                        lat =dce_coord_buf[[1]][,1], 
+                        color = "black"
+                      )%>%
+                      addCircleMarkers(
+                        data = df,
+                        lat = ~ LATITUDE,
+                        lng = ~ LONGITUDE,
+                        radius = ~ ifelse(type == "1", 6, 6),
+                        color = ~ pal(type),
+                        stroke = FALSE,
+                        fillOpacity = 0.5
+                      )
+                  ))
+        }
+      }
+      
+    }
+  }
+
+
+
+  html 
+  
+sum_two_convexe_hulls <<- c()
+B <<- c()
+CC <<- c()
+  html <- list()
+
+  plot(dce_coord, type="l") 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

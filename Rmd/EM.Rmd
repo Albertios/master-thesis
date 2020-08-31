@@ -1,0 +1,113 @@
+---
+title: "EM"
+author: "Albert Hamzin"
+date: "2/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("sourceData.R")
+```
+
+
+
+```{r packages}
+
+library(MASS, quietly = TRUE)
+library(Matrix, quietly = TRUE)
+library(EMCluster, quietly = TRUE)
+
+library(tmap)       # for static and interactive maps
+library(leaflet)    # for interactive maps
+library(mapview)    # for interactive maps
+library(ggplot2)    # tidyverse data visualization package
+library(cowplot)  # will combine multiple plots
+
+
+```
+
+## EM
+
+
+
+```{r 2011}
+ret.em11 <- init.EM(sum11, nclass = 2, method = "em.EM")
+
+
+plotem(ret.em11, sum11, main = paste0("year 2011 with ", ret.em11$n ," points"), xlim=c(-20, 16), ylim=c(-20, 30)  ,xlab = "lon", ylab = "lat")
+
+
+
+leaflet(sum11) %>% addTiles() %>%
+  addMarkers(lng=sum11$LONGITUDE, lat=sum11$LATITUDE) %>%
+  setView(lng = -2, lat = 5, zoom = 4) # %>%
+  #addCircles(lng = ret.em$Mu[,1], lat = ret.em$Mu[,2], weight = 100 )
+
+
+
+
+
+```
+
+
+```{r 2012}
+
+ret.em <- init.EM(sum12, nclass = 2, method = "em.EM")
+
+plotem(ret.em, sum12, main = paste0("year 2012 with ", ret.em$n ," points"), xlim=c(-20, 16), ylim=c(-20, 30),  xlab = "lon", ylab = "lat")
+
+leaflet(sum11) %>% addTiles() %>%
+  addMarkers(lng=sum12$LONGITUDE, lat=sum12$LATITUDE) %>%
+  setView(lng = -2, lat = 5, zoom = 4)
+```
+
+
+```{r 2013}
+
+ret.em <- init.EM(sum13, nclass = 2, method = "em.EM")
+
+plotem(ret.em, sum13, main = paste0("year 2013 with ", ret.em$n ," points"), xlim=c(-20, 16), ylim=c(-20, 30),  xlab = "lon", ylab = "lat")
+
+leaflet(sum11) %>% addTiles() %>%
+  addMarkers(lng=sum13$LONGITUDE, lat=sum13$LATITUDE) %>%
+  setView(lng = -2, lat = 5, zoom = 4)
+```
+
+
+
+```{r 2014}
+ret.em14 <- init.EM(sum14, nclass = 2, method = "em.EM")
+
+plot2d( sum14,ret.em14, color.pch = 11,main = paste0("year 2014 with ", ret.em$n ," points"), xlim=c(-20, 16), ylim=c(-20, 30),  xlab = "lon", ylab = "lat", append.BN = TRUE)
+
+leaflet(sum11) %>% addTiles() %>%
+  addMarkers(lng=sum14$LONGITUDE, lat=sum14$LATITUDE) %>%
+  setView(lng = -2, lat = 5, zoom = 4)
+
+```
+
+
+```{r 2015}
+ret.em <- init.EM(sum15, nclass = 2, method = "em.EM")
+
+plotem(ret.em, sum15, main = paste0("year 2015 with ", ret.em$n ," points"), xlim=c(-20, 16), ylim=c(-20, 30),  xlab = "lon", ylab = "lat")
+
+leaflet(sum11) %>% addTiles() %>%
+  addMarkers(lng=sum15$LONGITUDE, lat=sum15$LATITUDE) %>%
+  setView(lng = -2, lat = 5, zoom = 4)
+
+```
+
+
+
+```{r 2016}
+ret.em <- init.EM(sum16, nclass = 2, method = "em.EM")
+
+plotem(ret.em, sum16, main = paste0("year 2016 with ", ret.em$n ," points"), xlim=c(-20, 16), ylim=c(-20, 30),  xlab = "lon", ylab = "lat")
+
+leaflet(sum11) %>% addTiles() %>%
+  addMarkers(lng=sum16$LONGITUDE, lat=sum16$LATITUDE) %>%
+  setView(lng = -2, lat = 5, zoom = 4)
+
+```

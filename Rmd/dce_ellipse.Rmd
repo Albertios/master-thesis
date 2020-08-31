@@ -1,0 +1,295 @@
+---
+title: "DCE Ellipse"
+author: "Albert Hamzin"
+date: "6/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("/Users/alf/Documents/GitHub/Master/R_code/Convex_Hull_with_two_eggs.R")
+source("/Users/alf/Documents/GitHub/Master/R_code/Discrete_Curve_Evolution.R")
+```
+
+
+```{r message=FALSE, warning=FALSE}
+library(mclust)
+library(leaflet)
+library(sp)
+library(spatstat)
+
+library(concaveman)
+library(car)
+require(mixtools)
+```
+
+
+
+```{r}
+#Congo_EM_Convex_Hull_two_eggs()
+```
+
+
+
+
+
+
+# Boko Haram
+
+```{r}
+html <- list()
+for (i in 17:length(years_Congo)) {
+  df <- get_year_Congo(years_Congo[i])
+  
+  year <- as.numeric(years_Congo[i])
+  
+  df <- df[which(df$YEAR == year), ]
+  
+  df_as_temporarily <-
+    data.frame("LONGITUDE" = df$LONGITUDE,
+               "LATITUDE" = df$LATITUDE)
+  uniqueData <- unique(df_as_temporarily)
+  
+  if (nrow(uniqueData) > 3) {
+    df <-  df_as_temporarily
+    
+    mod <- Mclust(df_as_temporarily, G = 3)
+    
+    df$type <-  c(mod[["classification"]])
+    
+    
+    x <- df$LONGITUDE
+    y <- df$LATITUDE
+    w <- convexhull.xy(x, y)
+    
+    type_one <- which(df$type == "1")
+    egg_one <- df[type_one,]
+    unique_egg_one <- unique(egg_one)
+    
+    type_two <- which(df$type == "2")
+    egg_two <- df[type_two,]
+    unique_egg_two <- unique(egg_two)
+    
+    type_three <- which(df$type == "3")
+    egg_three <- df[type_three,]
+    unique_egg_three <- unique(egg_three)
+    
+    if (nrow(unique_egg_one) > 2 ) {
+      egg_one_x <- egg_one$LONGITUDE
+      egg_one_y <- egg_one$LATITUDE
+      egg_one_convex_hull <- convexhull.xy(egg_one_x, egg_one_y)
+      
+      egg_two_x <- egg_two$LONGITUDE
+      egg_two_y <- egg_two$LATITUDE
+      egg_two_convex_hull <- convexhull.xy(egg_two_x, egg_two_y)
+      
+      egg_three_x <- egg_three$LONGITUDE
+      egg_three_y <- egg_three$LATITUDE
+      egg_three_convex_hull <- convexhull.xy(egg_three_x, egg_three_y)
+      
+      # Create a palette that maps factor levels to colors
+      area_size_one <- (100 / spatstat::area(w)) * spatstat::area(egg_one_convex_hull)
+      area_size_two <- (100 / spatstat::area(w)) * spatstat::area(egg_two_convex_hull)
+      area_size_three <- 100 - (area_size_one + area_size_two)
+      
+      area_size <-
+        c(area_size_one, area_size_two, area_size_three) %>% which.max() %>% toString()
+      
+      order_min_to_max <-
+        c(area_size_one, area_size_two, area_size_three) %>% order()  %>% as.character()
+      
+      
+      color_list <-   c("CYAN"=area_size_one, "red"=area_size_two, "navy"=area_size_three)
+      
+      if (area_size == "1") {
+        pal <- colorFactor(c("navy", "red", "CYAN"), domain = c("1", "2","3"))
+        convex_egg_one <- egg_two_convex_hull
+        convex_egg_two <- egg_three_convex_hull
+        
+        first_ellipse <- dataEllipse(egg_two_x, egg_two_y, levels=.999)
+        second_ellipse <- dataEllipse(egg_three_x, egg_three_y, levels=0.999)
+        
+        egg_points <- rbind(egg_two, egg_three)
+
+      }else if (area_size == "2") {
+        pal <- colorFactor(c("red", "navy", "CYAN"), domain = c("1", "2","3"))
+        convex_egg_one <- egg_one_convex_hull
+        convex_egg_two <- egg_three_convex_hull
+        
+        first_ellipse <- dataEllipse(egg_one_x, egg_one_y, levels=.999)
+        second_ellipse <- dataEllipse(egg_three_x, egg_three_y, levels=0.999)
+
+        egg_points <- rbind(egg_one, egg_three)
+        
+      }else{
+        pal <- colorFactor(c("CYAN", "red", "navy"), domain = c("1", "2","3"))
+        convex_egg_one <- egg_one_convex_hull
+        convex_egg_two <- egg_two_convex_hull
+        first_ellipse <- dataEllipse(egg_one_x, egg_one_y, levels=.999)
+        second_ellipse <- dataEllipse(egg_two_x, egg_two_y, levels=0.999)
+        
+        egg_points <- rbind(egg_two, egg_one)
+      }
+
+
+      combined_ellipses <- rbind(first_ellipse,second_ellipse)
+  
+      concave_ellipse <- concaveman(combined_ellipses)  
+
+      dce_ellispe <- discrete_curve_evolution(concave_ellipse,7) %>% data.frame()
+
+      html <- c(
+        html,
+        list(
+          h3(paste0("Congo Year ", year)),
+          leaflet(egg_points) %>% addTiles() %>%
+            # addPolygons(
+            #   lng = w[["bdry"]][[1]][["x"]],
+            #   lat = w[["bdry"]][[1]][["y"]],
+            #   color = "green"
+            # ) %>%
+            addPolygons(lng = convex_egg_one[["bdry"]][[1]][["x"]],
+                        lat = convex_egg_one[["bdry"]][[1]][["y"]],
+                        color = "purple") %>% 
+            addPolygons(lng = convex_egg_two[["bdry"]][[1]][["x"]],
+                        lat = convex_egg_two[["bdry"]][[1]][["y"]],
+                        color = "purple") %>% 
+            addPolygons(lng = dce_ellispe$lat,
+                        lat = dce_ellispe$long,
+                        color = "black") %>% 
+            addCircleMarkers(
+              data = egg_points,
+              lat = ~ LATITUDE,
+              lng = ~ LONGITUDE,
+              radius = ~ ifelse(type == "1", 6, 6),
+              color = "blue",
+              stroke = FALSE,
+              fillOpacity = 0.5
+            )
+        )
+      )
+    }
+  }
+}
+html
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r eval=FALSE, include=FALSE}
+  html <- list()
+  for (i in 1:length(years_Sudan)) {
+    df <- get_year_Sudan(years_Sudan[i])
+    
+    year <- as.numeric(years_Sudan[i])
+    
+    df <- df[which(df$YEAR == year),]
+    
+    df_as_temporarily <-
+      data.frame("LONGITUDE" = df$LONGITUDE,
+                 "LATITUDE" = df$LATITUDE)
+    uniqueData <- unique(df_as_temporarily)
+    
+    dce_coord <- c()
+    
+    if (nrow(uniqueData) > 2) {
+      df <-  df_as_temporarily
+      
+      mod <- Mclust(df_as_temporarily, G = 2)
+      
+      df$type <-  c(mod[["classification"]])
+      
+      
+      x <- df$LONGITUDE
+      y <- df$LATITUDE
+      w <- convexhull.xy(x, y)
+      
+      type_one <- which(df$type == "1")
+      egg <-df[type_one, ]
+      unique_egg <- unique(egg)
+      if (nrow(unique_egg) > 2) {
+        egg_x <- egg$LONGITUDE
+        egg_y <- egg$LATITUDE
+        egg_convex_hull <- convexhull.xy(egg_x,egg_y)
+      
+      # Create a palette that maps factor levels to colors
+        area_size <- spatstat::area(w)/100*spatstat::area(egg_convex_hull)
+        
+        if(area_size>50){
+          type_one <- which(df$type == "2")
+          egg <- df[type_one,]
+          unique_egg <- unique(egg)
+          egg_x <- egg$LONGITUDE
+          egg_y <- egg$LATITUDE
+          egg_convex_hull <- convexhull.xy(egg_x, egg_y)
+          
+          pal <- colorFactor(c("red", "navy"), domain = c("1", "2"))
+        }else{
+          pal <- colorFactor(c("navy", "red"), domain = c("1", "2"))
+        }
+        
+        # if (length(unique(egg_convex_hull[["bdry"]][[1]][["x"]])) > 7 ) {
+        #   A <- cbind(unique(egg_convex_hull[["bdry"]][[1]][["x"]]), unique(egg_convex_hull[["bdry"]][[1]][["y"]]))
+        #   A <- rbind(A, A[1,])
+        #   dce_coord <-discrete_curve_evolution(A, 7)# %>% na.omit() 
+        #   
+        #   dce_coord <- coordinates(dce_coord)
+        #   dce_coord <-  st_polygon(list(as.matrix(dce_coord)))
+        #   dce_coord_buf = st_buffer(dce_coord, .4, endCapStyle = "SQUARE", joinStyle = "MITRE",  mitreLimit = 5)
+        # 
+      html <- c(html,
+                list(
+                  h3(paste0("Sudan Year ", year)),
+                  leaflet(df) %>% addTiles() %>%
+                    addPolygons(
+                      lng = w[["bdry"]][[1]][["x"]],
+                      lat = w[["bdry"]][[1]][["y"]],
+                      color = "green"
+                    ) %>%
+                    addPolygons(
+                      lng = egg_convex_hull[["bdry"]][[1]][["x"]],
+                      lat = egg_convex_hull[["bdry"]][[1]][["y"]],
+                      color = "purple"
+                    )%>%
+                    # addPolygons(
+                    #   lng =dce_coord_buf[[1]][,2], 
+                    #   lat =dce_coord_buf[[1]][,1], 
+                    #   color = "red"
+                    #)%>%
+                    addCircleMarkers(
+                      data = df,
+                      lat = ~ LATITUDE,
+                      lng = ~ LONGITUDE,
+                      radius = ~ ifelse(type == "1", 6, 6),
+                      color = ~ pal(type),
+                      stroke = FALSE,
+                      fillOpacity = 0.5
+                    )
+                ))
+        }
+      }
+    }
+  #}
+  #return(tagList(html))
+html
+```
+
+
+
+
+
+

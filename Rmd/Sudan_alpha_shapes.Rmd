@@ -1,0 +1,87 @@
+---
+title: "Sudan"
+author: "Albert Hamzin"
+date: "2/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("/Users/alf/Documents/GitHub/Master/R_code/Convex_Hull_with_two_eggs.R")
+```
+
+
+```{r packages,  include=FALSE}
+library(alphahull)
+library(tidyverse) # identify and remove duplicate
+```
+
+
+
+## alpha shape Sudan
+
+
+
+
+```{r alpha shape Sudan}
+# works only with unique points / coordinates
+
+
+create_alpha_shape_plot_Sudan()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

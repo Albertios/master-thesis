@@ -1,0 +1,59 @@
+---
+title: "EM & Convex Hull & two eggs"
+author: "Albert Hamzin"
+date: "4/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("/Users/alf/Documents/GitHub/Master/R_code/Convex_Hull_with_two_eggs.R")
+```
+
+
+```{r message=FALSE, warning=FALSE}
+library(mclust)
+library(leaflet)
+library(sp)
+library(spatstat)
+```
+
+
+
+# Boko Haram
+
+```{r}
+Boko_Haram_EM_Convex_Hull_two_eggs()
+```
+
+
+# Sudan
+```{r}
+Sudan_EM_Convex_Hull_two_eggs()
+
+```
+
+
+
+# Kongo
+```{r}
+
+Congo_EM_Convex_Hull_two_eggs()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,66 @@
+---
+title: "convex hull"
+author: "Albert Hamzin"
+date: "3/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("sourceData.R")
+```
+
+
+
+## Boko Haram
+
+```{r }
+ leaflet_chull_Boko()
+```
+
+
+
+## Congo
+
+```{r}
+ leaflet_chull_Congo()
+```
+
+
+## Sudan
+
+```{r }
+leaflet_chull_Sudan()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

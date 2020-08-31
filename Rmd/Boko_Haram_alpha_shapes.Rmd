@@ -1,0 +1,37 @@
+---
+title: "Boko Haram in Chad, Niger, Nigeria & Cameroon"
+author: "Albert Hamzin"
+date: "2/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("sourceData.R")
+```
+
+
+```{r packages,  include=FALSE}
+
+```
+
+
+
+
+
+```{r alpha shape Boko Haram}
+# works only with unique points / coordinates
+
+
+#create_alpha_shape_plot_Boko_Haram()
+
+```
+
+
+## alpha shape Boko Haram alpha value 100
+
+```{r}
+create_Convex_plot_Boko_Haram()
+```
+
+

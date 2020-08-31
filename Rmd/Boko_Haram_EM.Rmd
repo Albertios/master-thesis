@@ -1,0 +1,36 @@
+---
+title: "Boko Haram EM"
+author: "Albert Hamzin"
+date: "2/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("sourceData.R")
+```
+
+
+
+```{r packages}
+
+library(MASS, quietly = TRUE)
+library(Matrix, quietly = TRUE)
+library(EMCluster, quietly = TRUE)
+
+library(tmap)       # for static and interactive maps
+library(leaflet)    # for interactive maps
+library(mapview)    # for interactive maps
+library(ggplot2)    # tidyverse data visualization package
+library(cowplot)  # will combine multiple plots
+
+
+```
+
+## EM
+
+
+```{r}
+create_EM_plot_Boko_Haram()
+```
+
